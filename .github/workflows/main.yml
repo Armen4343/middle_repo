@@ -70,6 +70,7 @@ jobs:
             echo "$resp"
             exit 1
           fi
+          echo "Response from trigger API: $resp"
 
           # Find the triggered workflow run
           counter=0
