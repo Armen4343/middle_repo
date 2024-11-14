@@ -25,6 +25,11 @@ on:
         required: true
         type: string
 
+    outputs:
+      workflow_conclusion:
+        description: "workflow_conclusion"
+        value: ${{ jobs.trigger.outputs.workflow_conclusion }}
+
 jobs:
   trigger:
     runs-on: ubuntu-latest
