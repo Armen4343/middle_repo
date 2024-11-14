@@ -24,16 +24,6 @@ on:
         description: 'GitHub Personal Access Token (for authorization)'
         required: true
         type: string
-      max_time:
-        description: 'Maximum wait time for workflow completion (in seconds)'
-        required: false
-        default: '1800'
-        type: string
-      wait_time:
-        description: 'Wait time between checks (in seconds)'
-        required: false
-        default: '10'
-        type: string
 
 jobs:
   trigger:
