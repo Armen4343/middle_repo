@@ -1,0 +1,122 @@
+name: Trigger and Monitor Workflow
+
+on:
+  workflow_call:
+    inputs:
+      owner:
+        description: 'GitHub Owner'
+        required: true
+        type: string
+      repo:
+        description: 'Repository Name'
+        required: true
+        type: string
+      event_type:
+        description: 'Event Type to trigger'
+        required: true
+        type: string
+      client_payload:
+        description: 'Client Payload'
+        required: false
+        default: '{}'
+        type: string
+      token:
+        description: 'GitHub Personal Access Token (for authorization)'
+        required: true
+        type: string
+      max_time:
+        description: 'Maximum wait time for workflow completion (in seconds)'
+        required: true
+        default: 1800
+        type: number
+      wait_time:
+        description: 'Wait time between checks (in seconds)'
+        required: true
+        default: 10
+        type: number
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Trigger and monitor workflow (sh)
+        run: |
+          INPUT_OWNER="${{ github.event.inputs.owner }}"
+          INPUT_REPO="${{ github.event.inputs.repo }}"
+          INPUT_EVENT_TYPE="${{ github.event.inputs.event_type }}"
+          INPUT_CLIENT_PAYLOAD="${{ github.event.inputs.client_payload }}"
+          INPUT_TOKEN="${{ github.event.inputs.token }}"
+          INPUT_MAX_TIME="${{ github.event.inputs.max_time }}"
+          INPUT_WAIT_TIME="${{ github.event.inputs.wait_time }}"
+
+          # Trigger the workflow
+          echo "Triggering ${INPUT_EVENT_TYPE} in ${INPUT_OWNER}/${INPUT_REPO}"
+          resp=$(curl -X POST -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${INPUT_TOKEN}" \
+            -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
+
+          if [ -z "$resp" ]; then
+            sleep 2
+          else
+            echo "Workflow failed to trigger"
+            echo "$resp"
+            exit 1
+          fi
+
+          # Find the triggered workflow run
+          counter=0
+          while true; do
+            counter=$((counter + 1))
+            workflow=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs?event=repository_dispatch" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
+
+            wtime=$(echo "$workflow" | jq -r '.created_at' | cut -c13-20)
+            atime=$(date -u +%T)
+            tdif=$(( $(date -d "$atime" +"%s") - $(date -d "$wtime" +"%s") ))
+
+            if [ "$tdif" -gt 10 ]; then
+              if [ "$counter" -gt 3 ]; then
+                echo "Workflow not found"
+                exit 1
+              else
+                sleep 2
+              fi
+            else
+              break
+            fi
+          done
+
+          wfid=$(echo "$workflow" | jq -r '.id')
+          conclusion=$(echo "$workflow" | jq -r '.conclusion')
+
+          echo "Workflow id is ${wfid}"
+
+          # Wait for the workflow to complete
+          counter=0
+          while [ "$conclusion" = "null" ]; do
+            if [ "$counter" -ge "$INPUT_MAX_TIME" ]; then
+              echo "Time limit exceeded"
+              exit 1
+            fi
+            sleep "$INPUT_WAIT_TIME"
+            conclusion=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}" \
+            	-H "Accept: application/vnd.github.v3+json" \
+            	-H "Authorization: Bearer ${INPUT_TOKEN}" | jq -r '.conclusion')
+            counter=$((counter + INPUT_WAIT_TIME))
+          done
+
+          if [ "$conclusion" = "success" ]; then
+            echo "Workflow run successful"
+          else
+            echo "Workflow run failed"
+            exit 1
+          fi
