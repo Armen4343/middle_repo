@@ -34,7 +34,6 @@ on:
         required: false
         default: 10
         type: number
-
 jobs:
   trigger:
     runs-on: ubuntu-latest
@@ -46,16 +45,15 @@ jobs:
         run: sudo apt-get install jq
 
       - name: Trigger and monitor workflow (sh)
+        env:
+          INPUT_OWNER: ${{ inputs.owner }}
+          INPUT_REPO: ${{ inputs.repo }}
+          INPUT_EVENT_TYPE: ${{ inputs.event_type }}
+          INPUT_CLIENT_PAYLOAD: ${{ inputs.client_payload }}
+          INPUT_TOKEN: ${{ inputs.token }}
+          
         run: |
-          INPUT_OWNER="${{ inputs.owner }}"
-          INPUT_REPO="${{ inputs.repo }}"
-          INPUT_EVENT_TYPE="${{ inputs.event_type }}"
-          INPUT_CLIENT_PAYLOAD="${{ inputs.client_payload }}"
-          INPUT_TOKEN="${{ inputs.token }}"
-          INPUT_MAX_TIME="${{ inputs.max_time }}"
-          INPUT_WAIT_TIME="${{ inputs.wait_time }}"
 
-          # Trigger the workflow
           echo "Triggering ${INPUT_EVENT_TYPE} in ${INPUT_OWNER}/${INPUT_REPO}"
           resp=$(curl -X POST -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches" \
             -H "Accept: application/vnd.github.v3+json" \
