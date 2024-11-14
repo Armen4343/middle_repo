@@ -60,7 +60,7 @@ jobs:
           resp=$(curl -X POST -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${INPUT_TOKEN}" \
+            -H "Authorization: token ${INPUT_TOKEN}" \
             -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
 
           if [ -z "$resp" ]; then
@@ -78,7 +78,7 @@ jobs:
             counter=$((counter + 1))
             workflow=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs?event=repository_dispatch" \
               -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
+              -H "Authorization: token ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
 
             wtime=$(echo "$workflow" | jq -r '.created_at' | cut -c13-20)
             atime=$(date -u +%T)
@@ -111,7 +111,7 @@ jobs:
             sleep "$INPUT_WAIT_TIME"
             conclusion=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}" \
             	-H "Accept: application/vnd.github.v3+json" \
-            	-H "Authorization: Bearer ${INPUT_TOKEN}" | jq -r '.conclusion')
+            	-H "Authorization: token ${INPUT_TOKEN}" | jq -r '.conclusion')
             counter=$((counter + INPUT_WAIT_TIME))
           done
 
