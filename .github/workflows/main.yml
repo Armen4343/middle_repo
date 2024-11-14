@@ -34,7 +34,9 @@ jobs:
       INPUT_EVENT_TYPE: ${{ inputs.event_type }}
       INPUT_CLIENT_PAYLOAD: ${{ inputs.client_payload }}
       INPUT_TOKEN: ${{ inputs.token }}
-      
+    outputs:
+      workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
+    
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -121,7 +123,8 @@ jobs:
           
           if [ "$conclusion" = "success" ]; then
             echo "Workflow run successful"
+            echo "workflow_conclusion=${conclusion}" >> $GITHUB_ENV
           else
             echo "Workflow run failed"
-            exit 1
+            echo "workflow_conclusion=${conclusion}" >> $GITHUB_ENV
           fi
