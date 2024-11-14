@@ -27,13 +27,13 @@ on:
       max_time:
         description: 'Maximum wait time for workflow completion (in seconds)'
         required: false
-        default: 1800
-        type: number
+        default: '1800'
+        type: string
       wait_time:
         description: 'Wait time between checks (in seconds)'
         required: false
-        default: 10
-        type: number
+        default: '10'
+        type: string
 
 jobs:
   trigger:
@@ -44,6 +44,8 @@ jobs:
       INPUT_EVENT_TYPE: ${{ inputs.event_type }}
       INPUT_CLIENT_PAYLOAD: ${{ inputs.client_payload }}
       INPUT_TOKEN: ${{ inputs.token }}
+      INPUT_MAX_TIME: ${{ inputs.max_time }}
+      INPUT_WAIT_TIME: ${{ inputs.wait_time }}
       
     steps:
       - name: Check out repository
@@ -112,18 +114,18 @@ jobs:
           # Wait for the workflow to complete
           counter=0
           while [ "$conclusion" = "null" ]; do
-            if [ "$counter" -ge "${{ inputs.max_time }}" ]; then
+            if [ "$counter" -ge "${INPUT_MAX_TIME}" ]; then
               echo "Time limit exceeded"
               exit 1
             fi
             
             echo "Check run on https://github.com/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}"
-            sleep ${{ inputs.wait_time }}
+            sleep ${INPUT_WAIT_TIME}}
             
             conclusion=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}" \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: Bearer ${INPUT_TOKEN}" | jq -r '.conclusion')
-            counter=$(( counter + ${{ inputs.wait_time }} ))
+            counter=$(( counter + ${INPUT_WAIT_TIME} ))
           done
           
           if [ "$conclusion" = "success" ]; then
