@@ -83,7 +83,7 @@ jobs:
             atime=$(date -u +%T)
             tdif=$(( $(date -d "$atime" +"%s") - $(date -d "$wtime" +"%s") ))
 
-            if [ "$tdif" -gt 10 ]; then
+            if [ "$tdif" -gt 20 ]; then
               if [ "$counter" -gt 3 ]; then
                 echo "Workflow not found"
                 exit 1
