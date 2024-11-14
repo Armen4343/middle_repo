@@ -26,12 +26,12 @@ on:
         type: string
       max_time:
         description: 'Maximum wait time for workflow completion (in seconds)'
-        required: true
+        required: false
         default: 1800
         type: number
       wait_time:
         description: 'Wait time between checks (in seconds)'
-        required: true
+        required: false
         default: 10
         type: number
 
