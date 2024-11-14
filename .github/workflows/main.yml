@@ -38,6 +38,13 @@ on:
 jobs:
   trigger:
     runs-on: ubuntu-latest
+    env:
+      INPUT_OWNER: ${{ inputs.owner }}
+      INPUT_REPO: ${{ inputs.repo }}
+      INPUT_EVENT_TYPE: ${{ inputs.event_type }}
+      INPUT_CLIENT_PAYLOAD: ${{ inputs.client_payload }}
+      INPUT_TOKEN: ${{ inputs.token }}
+      
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -45,22 +52,16 @@ jobs:
       - name: Install jq
         run: sudo apt-get install jq
 
-      - name: Trigger and monitor workflow (sh)
+      - name: Trigger another workflow and wait
         run: |
-          INPUT_OWNER="${{ inputs.owner }}"
-          INPUT_REPO="${{ inputs.repo }}"
-          INPUT_EVENT_TYPE="${{ inputs.event_type }}"
-          INPUT_CLIENT_PAYLOAD="${{ inputs.client_payload }}"
-          INPUT_TOKEN="${{ inputs.token }}"
-          INPUT_MAX_TIME="${{ inputs.max_time }}"
-          INPUT_WAIT_TIME="${{ inputs.wait_time }}"
+          echo "Triggering workflow in repository ${INPUT_OWNER}/${INPUT_REPO}..."
 
           # Trigger the repository_dispatch event
-          resp=$(curl -X POST -s "https://api.github.com/repos/${{ inputs.owner }}/${{ inputs.repo }}/dispatches" \
+          resp=$(curl -X POST -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ inputs.token }}" \
-            -d "{\"event_type\": \"${{ inputs.event_type }}\", \"client_payload\": ${{ inputs.client_payload }} }")
+            -H "Authorization: Bearer ${INPUT_TOKEN}" \
+            -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
           
           echo "$resp"
           echo "Triggered"
@@ -76,9 +77,9 @@ jobs:
           counter=0
           while true; do
             counter=$((counter + 1))
-            workflow=$(curl -s "https://api.github.com/repos/${{ inputs.owner }}/${{  inputs.repo }}/actions/runs?event=repository_dispatch" \
+            workflow=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs?event=repository_dispatch" \
               -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: Bearer ${{ inputs.token }}" | jq '.workflow_runs[0]')
+              -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
           
             if [ -z "$workflow" ]; then
               echo "No workflow runs found. Retrying..."
@@ -111,18 +112,18 @@ jobs:
           # Wait for the workflow to complete
           counter=0
           while [ "$conclusion" = "null" ]; do
-            if [ "$counter" -ge "${{  inputs.max_time }}" ]; then
+            if [ "$counter" -ge "${{ inputs.max_time }}" ]; then
               echo "Time limit exceeded"
               exit 1
             fi
             
-            echo "Check run on https://github.com/${{  inputs.owner }}/${{  inputs.repo }}/actions/runs/${wfid}"
-            sleep ${{  inputs.wait_time }}
+            echo "Check run on https://github.com/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}"
+            sleep ${{ inputs.wait_time }}
             
-            conclusion=$(curl -s "https://api.github.com/repos/${{  inputs.owner }}/${{  inputs.repo }}/actions/runs/${wfid}" \
+            conclusion=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}" \
               -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: Bearer ${{  inputs.token }}" | jq -r '.conclusion')
-            counter=$(( counter + ${{  inputs.wait_time }} ))
+              -H "Authorization: Bearer ${INPUT_TOKEN}" | jq -r '.conclusion')
+            counter=$(( counter + ${{ inputs.wait_time }} ))
           done
           
           if [ "$conclusion" = "success" ]; then
@@ -130,4 +131,3 @@ jobs:
           else
             echo "Workflow run failed"
             exit 1
-          fi
