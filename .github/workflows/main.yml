@@ -134,3 +134,4 @@ jobs:
           else
             echo "Workflow run failed"
             exit 1
+          fi
