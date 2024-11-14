@@ -60,7 +60,7 @@ jobs:
           resp=$(curl -X POST -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: ${INPUT_TOKEN} \
+            -H "Authorization: ${INPUT_TOKEN}" \
             -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
           
           if [ -z "$resp" ]; then
