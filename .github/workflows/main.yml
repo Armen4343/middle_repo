@@ -62,7 +62,7 @@ jobs:
             -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
 
           if [ -z "$resp" ]; then
-            sleep 2
+            sleep 10
           else
             echo "Workflow failed to trigger"
             echo "$resp"
