@@ -45,6 +45,7 @@ jobs:
         run: sudo apt-get install jq
 
       - name: Trigger another workflow and wait
+        id: trigger
         run: |
           echo "Triggering workflow in repository ${INPUT_OWNER}/${INPUT_REPO}..."
 
@@ -123,8 +124,8 @@ jobs:
           
           if [ "$conclusion" = "success" ]; then
             echo "Workflow run successful"
-            echo "workflow_conclusion=success" >> $GITHUB_OUTPUT
+            echo "workflow_conclusion=success" >> $GITHUB_ENV
           else
             echo "Workflow run failed"
-            echo "workflow_conclusion=fail" >> $GITHUB_OUTPUT
+            echo "workflow_conclusion=fail" >> $GITHUB_ENV
           fi
