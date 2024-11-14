@@ -63,8 +63,11 @@ jobs:
             -H "Authorization: ${INPUT_TOKEN}" \
             -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
 
-          if [ "$resp" -ne 202 ]; then
-            echo "Failed to trigger workflow. HTTP status: $resp"
+          if [ -z "$resp" ]; then
+            sleep 2
+          else
+            echo "Workflow failed to trigger"
+            echo "$resp"
             exit 1
           fi
 
