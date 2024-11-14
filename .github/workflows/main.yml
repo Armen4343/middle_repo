@@ -57,11 +57,12 @@ jobs:
 
           # Trigger the workflow
           echo "Triggering ${INPUT_EVENT_TYPE} in ${INPUT_OWNER}/${INPUT_REPO}"
-          resp=$(curl -X POST -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches" \
-            -H "Accept: application/vnd.github.v3+json" \
+          resp=$(curl -L -X POST \
+            -H "Accept: application/vnd.github+json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: ${INPUT_TOKEN}" \
-            -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
+            -H "Authorization: Bearer ${INPUT_TOKEN}" \
+            https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches \
+            -d '{"event_type": "${INPUT_EVENT_TYPE}", "client_payload": ${INPUT_CLIENT_PAYLOAD}}')
 
           if [ -z "$resp" ]; then
             sleep 2
