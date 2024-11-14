@@ -123,8 +123,8 @@ jobs:
           
           if [ "$conclusion" = "success" ]; then
             echo "Workflow run successful"
-            echo "workflow_conclusion=success" >> $GITHUB_ENV
+            echo "workflow_conclusion=success" >> $GITHUB_OUTPUT
           else
             echo "Workflow run failed"
-            echo "workflow_conclusion=fail" >> $GITHUB_ENV
+            echo "workflow_conclusion=fail" >> $GITHUB_OUTPUT
           fi
