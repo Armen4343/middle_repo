@@ -47,13 +47,13 @@ jobs:
 
       - name: Trigger and monitor workflow (sh)
         run: |
-          INPUT_OWNER="${{ github.event.inputs.owner }}"
-          INPUT_REPO="${{ github.event.inputs.repo }}"
-          INPUT_EVENT_TYPE="${{ github.event.inputs.event_type }}"
-          INPUT_CLIENT_PAYLOAD="${{ github.event.inputs.client_payload }}"
-          INPUT_TOKEN="${{ github.event.inputs.token }}"
-          INPUT_MAX_TIME="${{ github.event.inputs.max_time }}"
-          INPUT_WAIT_TIME="${{ github.event.inputs.wait_time }}"
+          INPUT_OWNER="${{ inputs.owner }}"
+          INPUT_REPO="${{ inputs.repo }}"
+          INPUT_EVENT_TYPE="${{ inputs.event_type }}"
+          INPUT_CLIENT_PAYLOAD="${{ inputs.client_payload }}"
+          INPUT_TOKEN="${{ inputs.token }}"
+          INPUT_MAX_TIME="${{ inputs.max_time }}"
+          INPUT_WAIT_TIME="${{ inputs.wait_time }}"
 
           # Trigger the workflow
           echo "Triggering ${INPUT_EVENT_TYPE} in ${INPUT_OWNER}/${INPUT_REPO}"
