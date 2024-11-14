@@ -55,66 +55,76 @@ jobs:
           INPUT_MAX_TIME="${{ inputs.max_time }}"
           INPUT_WAIT_TIME="${{ inputs.wait_time }}"
 
-          # Trigger the workflow
-          echo "Triggering ${INPUT_EVENT_TYPE} in ${INPUT_OWNER}/${INPUT_REPO}"
-          resp=$(curl -X POST -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches" \
+          # Trigger the repository_dispatch event
+          resp=$(curl -X POST -s "https://api.github.com/repos/${{ inputs.owner }}/${{ inputs.repo }}/dispatches" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: token ${INPUT_TOKEN}" \
-            -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
-
-          if [ -z "$resp" ]; then
-            sleep 2
-          else
-            echo "Workflow failed to trigger"
-            echo "$resp"
+            -H "Authorization: Bearer ${{ inputs.token }}" \
+            -d "{\"event_type\": \"${{ inputs.event_type }}\", \"client_payload\": ${{ inputs.client_payload }} }")
+          
+          echo "$resp"
+          echo "Triggered"
+          
+          if echo "$resp" | grep -q "message"; then
+            echo "Error: ${resp}"
             exit 1
+          else
+            echo "Workflow triggered successfully"
           fi
-          echo "Response from trigger API: $resp"
-
+          
           # Find the triggered workflow run
           counter=0
           while true; do
             counter=$((counter + 1))
-            workflow=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs?event=repository_dispatch" \
+            workflow=$(curl -s "https://api.github.com/repos/${{ inputs.owner }}/${{  inputs.repo }}/actions/runs?event=repository_dispatch" \
               -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: token ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
-
-            wtime=$(echo "$workflow" | jq -r '.created_at' | cut -c13-20)
-            atime=$(date -u +%T)
+              -H "Authorization: Bearer ${{ inputs.token }}" | jq '.workflow_runs[0]')
+          
+            if [ -z "$workflow" ]; then
+              echo "No workflow runs found. Retrying..."
+              sleep 2
+              continue
+            fi
+          
+            wtime=$(echo "$workflow" | jq -r '.created_at')
+            atime=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
             tdif=$(( $(date -d "$atime" +"%s") - $(date -d "$wtime" +"%s") ))
-
+          
             if [ "$tdif" -gt 10 ]; then
               if [ "$counter" -gt 3 ]; then
-                echo "Workflow not found"
+                echo "Workflow not found after multiple attempts"
                 exit 1
               else
+                echo "Waiting for workflow to start..."
                 sleep 2
               fi
             else
               break
             fi
           done
-
+          
           wfid=$(echo "$workflow" | jq -r '.id')
           conclusion=$(echo "$workflow" | jq -r '.conclusion')
-
+          
           echo "Workflow id is ${wfid}"
-
+          
           # Wait for the workflow to complete
           counter=0
           while [ "$conclusion" = "null" ]; do
-            if [ "$counter" -ge "$INPUT_MAX_TIME" ]; then
+            if [ "$counter" -ge "${{  inputs.max_time }}" ]; then
               echo "Time limit exceeded"
               exit 1
             fi
-            sleep "$INPUT_WAIT_TIME"
-            conclusion=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}" \
-            	-H "Accept: application/vnd.github.v3+json" \
-            	-H "Authorization: token ${INPUT_TOKEN}" | jq -r '.conclusion')
-            counter=$((counter + INPUT_WAIT_TIME))
+            
+            echo "Check run on https://github.com/${{  inputs.owner }}/${{  inputs.repo }}/actions/runs/${wfid}"
+            sleep ${{  inputs.wait_time }}
+            
+            conclusion=$(curl -s "https://api.github.com/repos/${{  inputs.owner }}/${{  inputs.repo }}/actions/runs/${wfid}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: Bearer ${{  inputs.token }}" | jq -r '.conclusion')
+            counter=$(( counter + ${{  inputs.wait_time }} ))
           done
-
+          
           if [ "$conclusion" = "success" ]; then
             echo "Workflow run successful"
           else
