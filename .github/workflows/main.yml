@@ -111,9 +111,6 @@ jobs:
           wfid=$(echo "$workflow" | jq -r '.id')
           conclusion=$(echo "$workflow" | jq -r '.conclusion')
 
-          echo "workflow >>>>>>>>>>>>>>>>>>>>>>>>>>start"
-          echo $workflow
-          echo "workflow>>>>>>>>>>>>>>>>>>>>>>>>>> end"
           
           echo "Workflow id is ${wfid}"
           
@@ -133,6 +130,10 @@ jobs:
               -H "Authorization: Bearer ${INPUT_TOKEN}" | jq -r '.conclusion')
             counter=$(( counter + "$INPUT_WAIT_TIME" ))
           done
+
+          echo "workflow >>>>>>>>>>>>>>>>>>>>>>>>>>start"
+          echo $workflow
+          echo "workflow>>>>>>>>>>>>>>>>>>>>>>>>>> end"
           
           if [ "$conclusion" = "success" ]; then
             echo "Workflow run successful"
