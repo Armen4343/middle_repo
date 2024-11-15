@@ -111,9 +111,9 @@ jobs:
           wfid=$(echo "$workflow" | jq -r '.id')
           conclusion=$(echo "$workflow" | jq -r '.conclusion')
 
-          echo workflow >>>>>>>>>>>>>>>>>>>>>>>>>>start
+          echo "workflow >>>>>>>>>>>>>>>>>>>>>>>>>>start"
           echo $workflow
-          echo workflow>>>>>>>>>>>>>>>>>>>>>>>>>> end
+          echo "workflow>>>>>>>>>>>>>>>>>>>>>>>>>> end"
           
           echo "Workflow id is ${wfid}"
           
