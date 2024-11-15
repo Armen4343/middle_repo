@@ -23,10 +23,6 @@ on:
     secrets:
       token:
         required: true
-      # token:
-      #   description: 'GitHub Personal Access Token (for authorization)'
-      #   required: true
-      #   type: string
 
     outputs:
       workflow_conclusion:
@@ -67,8 +63,7 @@ jobs:
             -H "Authorization: Bearer ${INPUT_TOKEN}" \
             -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
           
-          echo "$resp"
-          echo "Triggered"
+
           
           if echo "$resp" | grep -q "message"; then
             echo "Error: ${resp}"
@@ -130,15 +125,6 @@ jobs:
               -H "Authorization: Bearer ${INPUT_TOKEN}" | jq -r '.conclusion')
             counter=$(( counter + "$INPUT_WAIT_TIME" ))
           done
-
-          echo "workflow >>>>>>>>>>>>>>>>>>>>>>>>>>start"
-          echo $conclusion
-          echo "workflow>>>>>>>>>>>>>>>>>>>>>>>>>> end"
           
-          if [ "$conclusion" = "success" ]; then
-            echo "Workflow run successful"
-            echo "workflow_conclusion=success" >> $GITHUB_OUTPUT
-          else
-            echo "Workflow run failed"
-            echo "workflow_conclusion=fail" >> $GITHUB_OUTPUT
-          fi
+          echo "workflow_conclusion=$conclusion" >> $GITHUB_OUTPUT
+          
