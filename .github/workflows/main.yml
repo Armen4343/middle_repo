@@ -20,10 +20,10 @@ on:
         required: false
         default: '{}'
         type: string
-      token:
-        description: 'GitHub Personal Access Token (for authorization)'
-        required: true
-        type: string
+      # token:
+      #   description: 'GitHub Personal Access Token (for authorization)'
+      #   required: true
+      #   type: string
 
     outputs:
       workflow_conclusion:
@@ -38,7 +38,7 @@ jobs:
       INPUT_REPO: ${{ inputs.repo }}
       INPUT_EVENT_TYPE: ${{ inputs.event_type }}
       INPUT_CLIENT_PAYLOAD: ${{ inputs.client_payload }}
-      INPUT_TOKEN: ${{ inputs.token }}
+      INPUT_TOKEN: ${{ secrets.CCS_PAT_TOKEN }}
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
     
