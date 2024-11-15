@@ -21,7 +21,7 @@ on:
         default: '{}'
         type: string
     secrets:
-      CCS_PAT_TOKEN:
+      token:
         required: true
       # token:
       #   description: 'GitHub Personal Access Token (for authorization)'
