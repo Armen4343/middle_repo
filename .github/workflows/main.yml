@@ -132,7 +132,7 @@ jobs:
           done
 
           echo "workflow >>>>>>>>>>>>>>>>>>>>>>>>>>start"
-          echo $workflow
+          echo $conclusion
           echo "workflow>>>>>>>>>>>>>>>>>>>>>>>>>> end"
           
           if [ "$conclusion" = "success" ]; then
