@@ -41,7 +41,7 @@ jobs:
       INPUT_REPO: ${{ inputs.repo }}
       INPUT_EVENT_TYPE: ${{ inputs.event_type }}
       INPUT_CLIENT_PAYLOAD: ${{ inputs.client_payload }}
-      INPUT_TOKEN: ${{ secrets.CCS_PAT_TOKEN }}
+      INPUT_TOKEN: ${{ secrets.token }}
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
     
