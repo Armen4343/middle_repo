@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       owner:
-        description: 'GitHub Owner'
+        description: 'GitHub Owner or Organization'
         required: true
         type: string
       repo:
@@ -26,42 +26,42 @@ on:
 
     outputs:
       workflow_conclusion:
-        description: "workflow_conclusion"
+        description: "workflow conclusion"
         value: ${{ jobs.trigger.outputs.workflow_conclusion }}
 
 jobs:
   trigger:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest #TODO change to THD runners
     env:
-      INPUT_OWNER: ${{ inputs.owner }}
-      INPUT_REPO: ${{ inputs.repo }}
-      INPUT_EVENT_TYPE: ${{ inputs.event_type }}
-      INPUT_CLIENT_PAYLOAD: ${{ inputs.client_payload }}
-      INPUT_TOKEN: ${{ secrets.token }}
+      OWNER: ${{ inputs.owner }}
+      REPO: ${{ inputs.repo }}
+      EVENT_TYPE: ${{ inputs.event_type }}
+      CLIENT_PAYLOAD: ${{ inputs.client_payload }}
+      TOKEN: ${{ secrets.token }}
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
     
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get install jq
+      # - name: Install jq
+      #   run: sudo apt-get install jq
 
       - name: Trigger another workflow and wait
         id: trigger
         run: |
-          echo "Triggering workflow in repository ${INPUT_OWNER}/${INPUT_REPO}..."
+          echo "Triggering workflow in repository ${OWNER}/${REPO}..."
 
-          export INPUT_MAX_TIME=1200
-          export INPUT_WAIT_TIME=3
+          export MAX_TIME=1200 # Max execution time
+          export WAIT_TIME=10  # Check status every N seconds
 
           # Trigger the repository_dispatch event
-          resp=$(curl -X POST -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/dispatches" \
+          resp=$(curl -X POST -s "https://api.github.com/repos/${OWNER}/${REPO}/dispatches" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${INPUT_TOKEN}" \
-            -d "{\"event_type\": \"${INPUT_EVENT_TYPE}\", \"client_payload\": ${INPUT_CLIENT_PAYLOAD} }")
+            -H "Authorization: Bearer ${TOKEN}" \
+            -d "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": ${CLIENT_PAYLOAD} }")
           
 
           
@@ -76,9 +76,9 @@ jobs:
           counter=0
           while true; do
             counter=$((counter + 1))
-            workflow=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs?event=repository_dispatch" \
+            workflow=$(curl -s "https://api.github.com/repos/${OWNER}/${REPO}/actions/runs?event=repository_dispatch" \
               -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: Bearer ${INPUT_TOKEN}" | jq '.workflow_runs[0]')
+              -H "Authorization: Bearer ${TOKEN}" | jq '.workflow_runs[0]')
           
             if [ -z "$workflow" ]; then
               echo "No workflow runs found. Retrying..."
@@ -112,18 +112,18 @@ jobs:
           # Wait for the workflow to complete
           counter=0
           while [ "$conclusion" = "null" ]; do
-            if [ "$counter" -ge "$INPUT_MAX_TIME" ]; then
+            if [ "$counter" -ge "$MAX_TIME" ]; then
               echo "Time limit exceeded"
               exit 1
             fi
             
-            echo "Check run on https://github.com/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}"
-            sleep "$INPUT_WAIT_TIME"
+            echo "Check run on https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
+            sleep "$WAIT_TIME"
             
-            conclusion=$(curl -s "https://api.github.com/repos/${INPUT_OWNER}/${INPUT_REPO}/actions/runs/${wfid}" \
+            conclusion=$(curl -s "https://api.github.com/repos/${OWNER}/${REPO}/actions/runs/${wfid}" \
               -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: Bearer ${INPUT_TOKEN}" | jq -r '.conclusion')
-            counter=$(( counter + "$INPUT_WAIT_TIME" ))
+              -H "Authorization: Bearer ${TOKEN}" | jq -r '.conclusion')
+            counter=$(( counter + "$WAIT_TIME" ))
           done
           
           echo "workflow_conclusion=$conclusion" >> $GITHUB_OUTPUT
