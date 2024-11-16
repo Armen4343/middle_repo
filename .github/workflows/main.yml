@@ -45,9 +45,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      # - name: Install jq
-      #   run: sudo apt-get install jq
-
       - name: Trigger another workflow and wait
         id: trigger
         run: |
@@ -62,8 +59,6 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
             -d "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": ${CLIENT_PAYLOAD} }")
-          
-
           
           if echo "$resp" | grep -q "message"; then
             echo "Error: ${resp}"
@@ -105,7 +100,6 @@ jobs:
           
           wfid=$(echo "$workflow" | jq -r '.id')
           conclusion=$(echo "$workflow" | jq -r '.conclusion')
-
           
           echo "Workflow id is ${wfid}"
           
