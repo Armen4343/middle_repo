@@ -20,9 +20,9 @@ on:
         required: false
         default: '{}'
         type: string
-    secrets:
-      token:
-        required: true
+    # secrets:
+    #   token:
+    #     required: true
 
     outputs:
       workflow_conclusion:
@@ -37,7 +37,7 @@ jobs:
       REPO: ${{ inputs.repository }}
       EVENT_TYPE: ${{ inputs.event_type }}
       CLIENT_PAYLOAD: ${{ inputs.client_payload }}
-      TOKEN: ${{ secrets.token }}
+      TOKEN: ${{ secrets.CCS_PAT_TOKEN }}
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
     
