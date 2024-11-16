@@ -45,7 +45,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Trigger another workflow and wait
+      - name: Trigger workflow and wait
         id: trigger
         run: |
           echo "Triggering workflow in repository ${OWNER}/${REPO}..."
