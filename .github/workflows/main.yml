@@ -7,7 +7,7 @@ on:
         description: 'GitHub Owner or Organization'
         required: true
         type: string
-      repo:
+      repository:
         description: 'Repository Name'
         required: true
         type: string
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest #TODO change to THD runners
     env:
       OWNER: ${{ inputs.owner }}
-      REPO: ${{ inputs.repo }}
+      REPO: ${{ inputs.repository }}
       EVENT_TYPE: ${{ inputs.event_type }}
       CLIENT_PAYLOAD: ${{ inputs.client_payload }}
       TOKEN: ${{ secrets.token }}
