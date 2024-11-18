@@ -33,7 +33,7 @@ on:
 
 jobs:
   trigger:
-    runs-on: one-thd-gcp 
+    runs-on: ubuntu-latest
     env:
       OWNER: ${{ inputs.owner }}
       REPO: ${{ inputs.repository }}
