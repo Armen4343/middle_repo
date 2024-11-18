@@ -15,16 +15,6 @@ on:
         description: 'Event Type to trigger'
         required: true
         type: string
-      # max_time:
-      #   description: 'max execution time'
-      #   required: false
-      #   default: 1200
-      #   type: string
-      # wait_time:
-      #   description: 'check status every N secods'
-      #   required: false
-      #   default: 10
-      #   type: string
 
     outputs:
       workflow_conclusion:
@@ -33,15 +23,12 @@ on:
 
 jobs:
   trigger:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest #TODO change to THD runners
     env:
       OWNER: ${{ inputs.owner }}
       REPO: ${{ inputs.repository }}
       EVENT_TYPE: ${{ inputs.event_type }}
-      TOKEN: ${{ secrets.ECC_V2_PAT }}
-      # MAX_EXEC_TIME: ${{ inputs.max_time }}
-      # SLEEP_TIME: ${{ inputs.wait_time }}
-      
+      TOKEN: ${{ secrets.CCS_PAT_TOKEN }}
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
     
@@ -54,10 +41,8 @@ jobs:
         run: |
           echo "Triggering workflow in repository ${OWNER}/${REPO}..."
 
-          export MAX_TIME=1200
-          export WAIT_TIME=10
-          # MAX_TIME=$(( ${MAX_EXEC_TIME} ))  # Convert to integer in bash
-          # WAIT_TIME=$(( ${SLEEP_TIME} ))
+          export MAX_TIME=1200 # Max execution time
+          export WAIT_TIME=10  # Check status every N seconds
 
           # Trigger the repository_dispatch event
           resp=$(curl -X POST -s "https://api.github.com/repos/${OWNER}/${REPO}/dispatches" \
