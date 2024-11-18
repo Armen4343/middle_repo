@@ -55,8 +55,12 @@ jobs:
 
           # export MAX_TIME=1200 # Max execution time
           # export WAIT_TIME=10  # Check status every N seconds
-          export MAX_TIME=$(( ${MAX_EXEC_TIME} ))
-          export WAIT_TIME=$(( ${SLEEP_TIME} ))
+          
+          # export MAX_TIME=$(( ${MAX_EXEC_TIME} ))
+          # export WAIT_TIME=$(( ${SLEEP_TIME} ))
+          
+          export MAX_TIME=$(( ${{ inputs.max_exec_time}} ))
+          export WAIT_TIME=$(( ${{ inputs.sleep_time}} ))
 
           # Trigger the repository_dispatch event
           resp=$(curl -X POST -s "https://api.github.com/repos/${OWNER}/${REPO}/dispatches" \
