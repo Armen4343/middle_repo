@@ -25,6 +25,9 @@ on:
         default: "10"
         required: false
         type: string
+    secrets:
+      token:
+        required: true
         
     outputs:
       workflow_conclusion:
@@ -38,7 +41,7 @@ jobs:
       OWNER: ${{ inputs.owner }}
       REPO: ${{ inputs.repository }}
       EVENT_TYPE: ${{ inputs.event_type }}
-      TOKEN: ${{ secrets.CCS_PAT_TOKEN }}
+      TOKEN: ${{ secrets.token }}
       
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
