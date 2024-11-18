@@ -15,14 +15,6 @@ on:
         description: 'Event Type to trigger'
         required: true
         type: string
-      client_payload:
-        description: 'Client Payload'
-        required: false
-        default: '{}'
-        type: string
-    # secrets:
-    #   token:
-    #     required: true
 
     outputs:
       workflow_conclusion:
@@ -36,7 +28,6 @@ jobs:
       OWNER: ${{ inputs.owner }}
       REPO: ${{ inputs.repository }}
       EVENT_TYPE: ${{ inputs.event_type }}
-      CLIENT_PAYLOAD: ${{ inputs.client_payload }}
       TOKEN: ${{ secrets.CCS_PAT_TOKEN }}
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
@@ -58,7 +49,7 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
-            -d "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": ${CLIENT_PAYLOAD} }")
+            -d "{\"event_type\": \"${EVENT_TYPE}\"}")
           
           if echo "$resp" | grep -q "message"; then
             echo "Error: ${resp}"
