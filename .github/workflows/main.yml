@@ -15,16 +15,16 @@ on:
         description: 'Event Type to trigger'
         required: true
         type: string
-      max_time:
-        description: 'max execution time'
-        required: false
-        default: 1200
-        type: string
-      wait_time:
-        description: 'check status every N secods'
-        required: false
-        default: 10
-        type: string
+      # max_time:
+      #   description: 'max execution time'
+      #   required: false
+      #   default: 1200
+      #   type: string
+      # wait_time:
+      #   description: 'check status every N secods'
+      #   required: false
+      #   default: 10
+      #   type: string
 
     outputs:
       workflow_conclusion:
@@ -39,8 +39,8 @@ jobs:
       REPO: ${{ inputs.repository }}
       EVENT_TYPE: ${{ inputs.event_type }}
       TOKEN: ${{ secrets.ECC_V2_PAT }}
-      MAX_EXEC_TIME: ${{ inputs.max_time }}
-      SLEEP_TIME: ${{ inputs.wait_time }}
+      # MAX_EXEC_TIME: ${{ inputs.max_time }}
+      # SLEEP_TIME: ${{ inputs.wait_time }}
       
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
@@ -53,9 +53,11 @@ jobs:
         id: trigger
         run: |
           echo "Triggering workflow in repository ${OWNER}/${REPO}..."
-          
-          MAX_TIME=$(( ${MAX_EXEC_TIME} ))  # Convert to integer in bash
-          WAIT_TIME=$(( ${SLEEP_TIME} ))
+
+          export MAX_TIME=1200
+          export WAIT_TIME=10
+          # MAX_TIME=$(( ${MAX_EXEC_TIME} ))  # Convert to integer in bash
+          # WAIT_TIME=$(( ${SLEEP_TIME} ))
 
           # Trigger the repository_dispatch event
           resp=$(curl -X POST -s "https://api.github.com/repos/${OWNER}/${REPO}/dispatches" \
