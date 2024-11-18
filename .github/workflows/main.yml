@@ -39,8 +39,7 @@ jobs:
       REPO: ${{ inputs.repository }}
       EVENT_TYPE: ${{ inputs.event_type }}
       TOKEN: ${{ secrets.CCS_PAT_TOKEN }}
-      MAX_EXEC_TIME: ${{ inputs.max_exec_time }}
-      SLEEP_TIME: ${{ inputs.sleep_time }}
+      
     outputs:
       workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
     
@@ -53,12 +52,6 @@ jobs:
         run: |
           echo "Triggering workflow in repository ${OWNER}/${REPO}..."
 
-          # export MAX_TIME=1200 # Max execution time
-          # export WAIT_TIME=10  # Check status every N seconds
-          
-          # export MAX_TIME=$(( ${MAX_EXEC_TIME} ))
-          # export WAIT_TIME=$(( ${SLEEP_TIME} ))
-          
           export MAX_TIME=$(( ${{ inputs.max_exec_time}} ))
           export WAIT_TIME=$(( ${{ inputs.sleep_time}} ))
 
