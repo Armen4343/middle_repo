@@ -21,7 +21,7 @@ github_api_call() {
 
 # Set variables
 MAX_TIME=${MAX_EXEC_TIME:-1200}
-WAIT_TIME=${SLEEP_TIME:-2}
+WAIT_TIME=${SLEEP_TIME:-10}
 
 # Trigger the repository_dispatch event
 log "Triggering repository dispatch event in ${OWNER}/${REPO}..."
@@ -43,7 +43,7 @@ while true; do
     
     if [ -z "$workflow" ] || [ "$workflow" = "null" ]; then
         log "No workflow runs found. Retrying..."
-        sleep 2
+        sleep 3
         continue
     fi
 
@@ -57,7 +57,7 @@ while true; do
             exit 1
         else
             log "Waiting for workflow to start..."
-            sleep 2
+            sleep 3
         fi
     else
         break
@@ -87,10 +87,12 @@ done
 
 log "Workflow concluded with status: $conclusion"
 
+# Display all jobs with it's status and link
 github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion) - \(.html_url)"'
-# 
-# curl -X "GET" -s "https://api.github.com/repos/Armen4343/repoB/actions/runs/11908982086/jobs" \
-#     -H "Accept: application/vnd.github.v3+json" \
-#     -H "Content-Type: application/json" \
-#     -H "Authorization: Bearer " | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion)"'
-echo "workflow_conclusion=$conclusion" >> $GITHUB_OUTPUT
+
+if [ $conclusion= "success" ]; then
+    echo "Workflow run successful"
+else
+    echo "Workflow run failed"
+    exit 1
+fi
