@@ -21,7 +21,7 @@ github_api_call() {
 
 # Set variables
 MAX_TIME=${MAX_EXEC_TIME:-1200}
-WAIT_TIME=${SLEEP_TIME:-10}
+WAIT_TIME=${SLEEP_TIME:-2}
 
 # Trigger the repository_dispatch event
 log "Triggering repository dispatch event in ${OWNER}/${REPO}..."
@@ -33,11 +33,6 @@ if echo "$resp" | grep -q "message"; then
 else
     log "Workflow triggered successfully"
 fi
-
-
-echo "resp--------------------"
-echo "$resp"
-echo "resp---------------------"
 
 # Find the triggered workflow run
 log "Waiting for workflow to start..."
@@ -92,19 +87,10 @@ done
 
 log "Workflow concluded with status: $conclusion"
 
-jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.jobs')
-
-for job in $(echo "$jobs" | jq -c '.[]'); do
-    # Extract workflow name
-    # workflow_name=$(echo "$job" | jq -r '.workflow_name')
-
-    #     # Extract conclusion of the last step (Complete job)
-    # conclusion=$(echo "$job" | jq -r '.steps[-1].conclusion')
-
-    #     # Log in the desired format
-    # echo "Workflow Name: $workflow_name"
-    # echo "Complete job conclusion: $conclusion"
-    echo "test"
-done
-
+# github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion)"'
+# 
+# curl -X "GET" -s "https://api.github.com/repos/Armen4343/repoB/actions/runs/11908982086/jobs" \
+#     -H "Accept: application/vnd.github.v3+json" \
+#     -H "Content-Type: application/json" \
+#     -H "Authorization: Bearer " | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion)"'
 echo "workflow_conclusion=$conclusion" >> $GITHUB_OUTPUT
