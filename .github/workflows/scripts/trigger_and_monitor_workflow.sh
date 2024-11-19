@@ -34,6 +34,11 @@ else
     log "Workflow triggered successfully"
 fi
 
+
+echo "resp--------------------"
+echo "$resp"
+echo "resp---------------------"
+
 # Find the triggered workflow run
 log "Waiting for workflow to start..."
 counter=0
@@ -66,6 +71,10 @@ done
 
 wfid=$(echo "$workflow" | jq -r '.id')
 conclusion=$(echo "$workflow" | jq -r '.conclusion')
+
+echo "workflow------------------------"
+echo "$workflow"
+echo "workflow------------------------"
 
 log "Workflow ID: ${wfid}"
 
