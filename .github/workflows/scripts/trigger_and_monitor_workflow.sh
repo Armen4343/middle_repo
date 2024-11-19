@@ -57,7 +57,7 @@ while true; do
             exit 1
         else
             log "Waiting for workflow to start..."
-            sleep 2
+            sleep 3
         fi
     else
         break
@@ -89,8 +89,6 @@ log "Workflow concluded with status: $conclusion"
 
 # Display all jobs with it's status and link
 github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion) - \(.html_url)"'
-
-echo "workflow_conclusion=$conclusion" >> $GITHUB_OUTPUT
 
 if [ "$conclusion" = "success" ]; then
     echo "Workflow run successful"
