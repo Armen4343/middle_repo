@@ -94,21 +94,17 @@ log "Workflow concluded with status: $conclusion"
 
 jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.jobs')
 
-if echo "$jobs" | jq . > /dev/null 2>&1; then
-    # Iterate through jobs and extract workflow_name and conclusion of the "Complete job" step
-    for job in $(echo "$jobs" | jq -c '.[]'); do
-        # Extract workflow name
-        # workflow_name=$(echo "$job" | jq -r '.workflow_name')
+for job in $(echo "$jobs" | jq -c '.[]'); do
+    # Extract workflow name
+    # workflow_name=$(echo "$job" | jq -r '.workflow_name')
 
-        # # Extract conclusion of the last step (Complete job)
-        # conclusion=$(echo "$job" | jq -r '.steps[-1].conclusion')
+    #     # Extract conclusion of the last step (Complete job)
+    # conclusion=$(echo "$job" | jq -r '.steps[-1].conclusion')
 
-        # # Log in the desired format
-        # echo "Workflow Name: $workflow_name"
-        # echo "Complete job conclusion: $conclusion"
-    done
-else
-    echo "Error: Invalid JSON response in 'jobs'."
-fi
+    #     # Log in the desired format
+    # echo "Workflow Name: $workflow_name"
+    # echo "Complete job conclusion: $conclusion"
+    echo "test"
+done
 
 echo "workflow_conclusion=$conclusion" >> $GITHUB_OUTPUT
