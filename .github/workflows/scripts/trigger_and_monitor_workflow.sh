@@ -78,6 +78,12 @@ echo "workflow------------------------"
 
 log "Workflow ID: ${wfid}"
 
+jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.workflow_runs[0]')
+
+echo "jobs----------------"
+echo "$jobs"
+echo "jobs----------------"
+
 # Wait for the workflow to complete
 counter=0
 while [ "$conclusion" = "null" ]; do
