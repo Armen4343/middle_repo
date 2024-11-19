@@ -50,6 +50,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: ls
+        run: ls
+      - name: pwd
+        run: pwd
+
       - name: Trigger workflow and wait
         id: trigger
         run: ./.github/workflows/scripts/trigger_and_monitor_workflow.sh
