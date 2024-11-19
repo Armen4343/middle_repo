@@ -60,3 +60,8 @@ jobs:
           SLEEP_TIME: ${{ inputs.sleep_time }}
           MAX_EXEC_TIME: ${{ inputs.max_exec_time }}
           TOKEN: ${{ secrets.token }}
+  job2:
+    runs-on: ubuntu-latest
+    needs: trigger
+    steps:
+    - run: echo ${{needs.trigger.outputs.workflow_conclusion}}
