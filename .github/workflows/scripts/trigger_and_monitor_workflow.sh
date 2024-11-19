@@ -94,16 +94,16 @@ log "Workflow concluded with status: $conclusion"
 
 jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.jobs')
 
-for job in $(echo "$jobs" | jq -c '.[]'); do
-    # Extract workflow name
-    workflow_name=$(echo "$job" | jq -r '.workflow_name')
+# for job in $(echo "$jobs" | jq -c '.[]'); do
+#     # Extract workflow name
+#     workflow_name=$(echo "$job" | jq -r '.workflow_name')
 
-    # Extract conclusion of the last step (Complete job)
-    conclusion=$(echo "$job" | jq -r '.steps[-1].conclusion')
+#     # Extract conclusion of the last step (Complete job)
+#     conclusion=$(echo "$job" | jq -r '.steps[-1].conclusion')
 
-    # Log in the desired format
-    echo "Workflow Name: $workflow_name"
-    echo "Complete job conclusion: $conclusion"
-done
+#     # Log in the desired format
+#     echo "Workflow Name: $workflow_name"
+#     echo "Complete job conclusion: $conclusion"
+# done
 
 echo "workflow_conclusion=$conclusion" >> $GITHUB_OUTPUT
