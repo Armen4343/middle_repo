@@ -80,6 +80,7 @@ log "Workflow ID: ${wfid}"
 
 jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.workflow_runs[0]')
 
+sleep 7
 echo "jobs----------------"
 echo "$jobs"
 echo "jobs----------------"
