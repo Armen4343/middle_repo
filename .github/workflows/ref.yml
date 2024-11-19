@@ -49,10 +49,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          repository: Armen4343/middle_repo
 
       - name: List directory to confirm script location
         run: ls -R .github/workflows/scripts
-        
+
       - name: Make the script executable
         run: chmod +x .github/workflows/scripts/trigger_and_monitor_workflow.sh
 
