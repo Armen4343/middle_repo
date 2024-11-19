@@ -87,7 +87,7 @@ done
 
 log "Workflow concluded with status: $conclusion"
 
-github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion)"'
+github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion) - \(.html_url)"'
 # 
 # curl -X "GET" -s "https://api.github.com/repos/Armen4343/repoB/actions/runs/11908982086/jobs" \
 #     -H "Accept: application/vnd.github.v3+json" \
