@@ -1,0 +1,62 @@
+name: Trigger and Monitor Workflow
+
+on:
+  workflow_call:
+    inputs:
+      owner:
+        description: 'GitHub Owner or Organization'
+        required: true
+        type: string
+      repository:
+        description: 'Repository Name'
+        required: true
+        type: string
+      event_type:
+        description: 'Event Type to trigger'
+        required: true
+        type: string
+      max_exec_time:
+        description: 'Pipeline max execution time'
+        default: "1200"
+        required: false
+        type: string
+      sleep_time:
+        description: 'Status check '
+        default: "10"
+        required: false
+        type: string
+    secrets:
+      token:
+        required: true
+        
+    outputs:
+      workflow_conclusion:
+        description: "workflow conclusion"
+        value: ${{ jobs.trigger.outputs.workflow_conclusion }}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest #TODO change to THD runners
+    # env:
+    #   OWNER: ${{ inputs.owner }}
+    #   REPO: ${{ inputs.repository }}
+    #   EVENT_TYPE: ${{ inputs.event_type }}
+    #   TOKEN: ${{ secrets.token }}
+      
+    outputs:
+      workflow_conclusion: ${{ steps.trigger.outputs.workflow_conclusion }}
+    
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Trigger workflow and wait
+        id: trigger
+        run: ./scripts/trigger_and_monitor_workflow.sh
+        env:
+          OWNER: ${{ inputs.owner }}
+          REPO: ${{ inputs.repository }}
+          EVENT_TYPE: ${{ inputs.event_type }}
+          SLEEP_TIME: ${{ inputs.sleep_time }}
+          MAX_EXEC_TIME: ${{ inputs.max_exec_time }}
+          TOKEN: ${{ secrets.token }}
