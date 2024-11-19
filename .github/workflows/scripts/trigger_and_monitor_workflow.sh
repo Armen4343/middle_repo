@@ -27,6 +27,7 @@ WAIT_TIME=${SLEEP_TIME:-10}
 log "Triggering repository dispatch event in ${OWNER}/${REPO}..."
 resp=$(github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\"}")
 
+# Check the trigger for errors
 if echo "$resp" | grep -q "message"; then
     log "Error: ${resp}"
     exit 1
@@ -91,8 +92,8 @@ log "Workflow concluded with status: $conclusion"
 github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion) - \(.html_url)"'
 
 if [ "$conclusion" = "success" ]; then
-    echo "Workflow run successful"
+    log "Workflow run successful"
 else
-    echo "Workflow run failed"
+    log "Workflow run failed"
     exit 1
 fi
