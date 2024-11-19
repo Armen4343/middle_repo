@@ -97,3 +97,6 @@ else
     log "Workflow run failed"
     exit 1
 fi
+
+echo "workflow_conclusion=success" >> $GITHUB_ENV
+
