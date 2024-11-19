@@ -90,6 +90,7 @@ log "Workflow concluded with status: $conclusion"
 
 # Display all jobs with it's status and link
 github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq -r '.jobs[] | "\(.name) - \(.status) - \(.conclusion) - \(.html_url)"'
+echo "workflow_conclusion=success" >> $GITHUB_ENV
 
 if [ "$conclusion" = "success" ]; then
     log "Workflow run successful"
@@ -97,6 +98,4 @@ else
     log "Workflow run failed"
     exit 1
 fi
-
-echo "workflow_conclusion=success" >> $GITHUB_ENV
 
