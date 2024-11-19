@@ -52,7 +52,7 @@ jobs:
 
       - name: Trigger workflow and wait
         id: trigger
-        run: ./scripts/trigger_and_monitor_workflow.sh
+        run: ./.github/workflows/scripts/trigger_and_monitor_workflow.sh
         env:
           OWNER: ${{ inputs.owner }}
           REPO: ${{ inputs.repository }}
