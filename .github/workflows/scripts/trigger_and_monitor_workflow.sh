@@ -92,7 +92,7 @@ done
 
 log "Workflow concluded with status: $conclusion"
 
-jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.workflow_runs[0]')
+jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.jobs')
 
 echo "jobs----------------"
 echo "$jobs"
