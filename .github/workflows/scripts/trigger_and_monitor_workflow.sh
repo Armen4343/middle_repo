@@ -74,12 +74,6 @@ conclusion=$(echo "$workflow" | jq -r '.conclusion')
 
 log "Workflow ID: ${wfid}"
 
-jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.workflow_runs[0]')
-
-
-echo "jobs----------------"
-echo "$jobs"
-echo "jobs----------------"
 
 # Wait for the workflow to complete
 counter=0
@@ -98,5 +92,10 @@ done
 
 log "Workflow concluded with status: $conclusion"
 
+jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.workflow_runs[0]')
+
+echo "jobs----------------"
+echo "$jobs"
+echo "jobs----------------"
 
 echo "workflow_conclusion=$conclusion" >> $GITHUB_OUTPUT
