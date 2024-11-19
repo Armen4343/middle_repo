@@ -57,7 +57,7 @@ while true; do
             exit 1
         else
             log "Waiting for workflow to start..."
-            sleep 5
+            sleep 2
         fi
     else
         break
