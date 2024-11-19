@@ -74,7 +74,7 @@ conclusion=$(echo "$workflow" | jq -r '.conclusion')
 
 log "Workflow ID: ${wfid}"
 
-jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.workflow_runs[0]')
+# jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs" | jq '.workflow_runs[0]')
 
 
 # Wait for the workflow to complete
@@ -93,7 +93,11 @@ while [ "$conclusion" = "null" ]; do
 done
 
 log "Workflow concluded with status: $conclusion"
-
+jobs=curl -X "GET" -s "https://api.github.com/repos/Armen4343/repoB/actions/runs/${wfid}/jobs" \
+        -H "Accept: application/vnd.github.v3+json" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer ${TOKEN}" \
+        -w "%{http_code}"
 echo "jobs----------------"
 echo "$jobs"
 echo "jobs----------------"
