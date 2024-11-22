@@ -45,8 +45,8 @@ while true; do
     
     if [ -z "$workflow" ] || [ "$workflow" = "null" ]; then
         log "No workflow runs found. Retrying..."
-        sleep 3
-        continue
+        sleep 4
+        # continue
     fi
 
     wtime=$(echo "$workflow" | jq -r '.created_at')
