@@ -22,7 +22,8 @@ github_api_call() {
 # Set variables
 MAX_TIME=${MAX_EXEC_TIME:-1200}
 WAIT_TIME=${SLEEP_TIME:-10}
-
+echo "${EVENT_TYPE}"
+echo "eveeeeeeeeeeeeeeeeeeent type"
 # Trigger the repository_dispatch event
 log "Triggering repository dispatch event in ${OWNER}/${REPO}..."
 resp=$(github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\"}")
