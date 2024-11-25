@@ -26,8 +26,8 @@ echo "${EVENT_TYPE}"
 echo "eveeeeeeeeeeeeeeeeeeent type"
 # Trigger the repository_dispatch event
 log "Triggering repository dispatch event in ${OWNER}/${REPO}..."
-resp=$(github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\"}")
-
+resp=$(github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
+  "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}")
 # Check the trigger for errors
 if echo "$resp" | grep -q "message"; then
     log "Error: ${resp}"
