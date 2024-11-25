@@ -1,5 +1,8 @@
 name: Trigger and Monitor Workflow
 
+permissions:
+  contents: write
+
 on:
   workflow_call:
     inputs:
