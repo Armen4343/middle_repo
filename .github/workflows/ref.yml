@@ -60,6 +60,7 @@ jobs:
           SLEEP_TIME: ${{ inputs.sleep_time }}
           MAX_EXEC_TIME: ${{ inputs.max_exec_time }}
           TOKEN: ${{ secrets.token }}
+          CURRENT_REPO: ${{ github.repository }}
   job2:
     runs-on: ubuntu-latest
     needs: trigger
