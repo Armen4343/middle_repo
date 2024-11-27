@@ -51,6 +51,9 @@ jobs:
       - name: Make the script executable
         run: chmod +x .github/workflows/scripts/trigger_and_monitor_workflow.sh
 
+      - name: git repo display
+        run: echo "${{ github.repository }}"
+
       - name: Trigger workflow and wait
         id: trigger
         run: ./.github/workflows/scripts/trigger_and_monitor_workflow.sh
