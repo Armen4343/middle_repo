@@ -8,7 +8,7 @@ log() {
     local GREEN="\033[32m"
     local YELLOW="\033[33m"
     local RED="\033[31m"
-    local RESET="\033[0m"
+    # local RESET="\033[0m"
 
     # Default log level
     local level=${1:-INFO}
@@ -34,7 +34,7 @@ log() {
     esac
 
     # Single echo command
-    echo -e "${color}[$timestamp] [$prefix]${RESET} $message"
+    echo -e "${color}[$timestamp] $prefix $message"
 }
 
 # Function for GitHub API calls with error handling
