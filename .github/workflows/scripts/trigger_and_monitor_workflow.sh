@@ -3,8 +3,24 @@
 set -e  # Exit immediately if a command exits with a non-zero status
 
 # Function for logging with timestamps
+# log() {
+#     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
+# }
 log() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
+    local level=$1
+    local message=$2
+    local timestamp
+    timestamp=$(date +'%Y-%m-%d %H:%M:%S')
+    case $level in
+        INFO)
+            echo -e "\033[32m[$timestamp] [INFO]\033[0m $message" ;;    # Green
+        WARN)
+            echo -e "\033[33m[$timestamp] [WARNING]\033[0m $message" ;;  # Yellow
+        ERROR)
+            echo -e "\033[31m[$timestamp] [ERROR]\033[0m $message" ;;    # Red
+        *)
+            echo "[$timestamp] [UNKNOWN] $message" ;;
+    esac
 }
 
 # Function for GitHub API calls
@@ -18,6 +34,7 @@ github_api_call() {
         -H "Authorization: Bearer ${TOKEN}" \
         ${data:+-d "$data"}
 }
+
 
 # Set variables
 MAX_TIME=${MAX_EXEC_TIME:-1200}
