@@ -2,10 +2,6 @@
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
-# Function for logging with timestamps
-# log() {
-#     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
-# }
 log() {
     local level=$1
     local message=$2
@@ -28,19 +24,32 @@ github_api_call() {
     local method=$1
     local endpoint=$2
     local data=$3
-    curl -X "$method" -s "https://api.github.com$endpoint" \
+    local response
+    local http_status
+
+    response=$(curl -X "$method" -s -w "HTTPSTATUS:%{http_code}" "https://api.github.com$endpoint" \
         -H "Accept: application/vnd.github.v3+json" \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer ${TOKEN}" \
-        ${data:+-d "$data"}
-}
+        ${data:+-d "$data"})
 
+    http_status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+    response_body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
+
+    if [ "$http_status" -ge 400 ]; then
+        local error_message
+        error_message=$(echo "$response_body" | jq -r '.message')
+        log ERROR "GitHub API Error ($http_status): $error_message"
+        exit 1
+    fi
+
+    echo "$response_body"
+}
 
 # Set variables
 MAX_TIME=${MAX_EXEC_TIME:-1200}
 WAIT_TIME=${SLEEP_TIME:-10}
-echo "${EVENT_TYPE}"
-echo "eveeeeeeeeeeeeeeeeeeent type"
+
 # Trigger the repository_dispatch event
 log INFO "Triggering repository dispatch event in ${OWNER}/${REPO}..."
 resp=$(github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
