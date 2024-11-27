@@ -57,7 +57,10 @@ echo "${EVENT_TYPE}"
 
 # Trigger the repository_dispatch event
 log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
-github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CALLER_REPOSITORY}\"}}"
+# github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
+#   "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CALLER_REPOSITORY}\"}}"
+github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
+  "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CALLER_REPOSITORY}\"}}"
 log INFO "Workflow dispatch event triggered successfully."
 
 # Initialize variables
