@@ -51,6 +51,10 @@ github_api_call() {
 MAX_TIME=${MAX_EXEC_TIME:-1200}
 WAIT_TIME=${SLEEP_TIME:-10}
 
+log INFO "payload data"
+echo "${CALLER_REPOSITORY}"
+echo "${EVENT_TYPE}"
+
 # Trigger the repository_dispatch event
 log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
 github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CALLER_REPOSITORY}\"}}"
