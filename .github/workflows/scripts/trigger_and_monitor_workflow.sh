@@ -4,20 +4,37 @@ set -e  # Exit immediately if a command exits with a non-zero status
 
 # Function for logging with levels, colors, and timestamps
 log() {
-    local level=$1
-    local message=$2
-    local timestamp
-    timestamp=$(date +'%Y-%m-%d %H:%M:%S')
+    # Define color codes
+    local GREEN="\033[32m"
+    local YELLOW="\033[33m"
+    local RED="\033[31m"
+    local RESET="\033[0m"
+
+    # Default log level
+    local level=${1:-INFO}
+    local message=${2:-"No message provided"}
+
+    # Generate timestamp
+    local timestamp=$(date +'%Y-%m-%d %H:%M:%S')
+
+    # Determine color and prefix based on level
+    local color
+    local prefix
+
     case $level in
         INFO)
-            echo -e "\033[32m[$timestamp] [INFO]\033[0m $message" ;;    # Green
+            color=$GREEN
+            prefix="INFO" ;;
         WARN)
-            echo -e "\033[33m[$timestamp] [WARNING]\033[0m $message" ;;  # Yellow
+            color=$YELLOW
+            prefix="WARNING" ;;
         ERROR)
-            echo -e "\033[31m[$timestamp] [ERROR]\033[0m $message" ;;    # Red
-        *)
-            echo "[$timestamp] [UNKNOWN] $message" ;;
+            color=$RED
+            prefix="ERROR" ;;
     esac
+
+    # Single echo command
+    echo -e "${color}[$timestamp] [$prefix]${RESET} $message"
 }
 
 # Function for GitHub API calls with error handling
