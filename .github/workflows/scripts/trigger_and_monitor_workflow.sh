@@ -4,12 +4,6 @@ set -e  # Exit immediately if a command exits with a non-zero status
 
 # Function for logging with levels, colors, and timestamps
 log() {
-    # Define color codes
-    local GREEN="\033[32m"
-    local YELLOW="\033[33m"
-    local RED="\033[31m"
-    # local RESET="\033[0m"
-
     # Default log level
     local level=${1:-INFO}
     local message=${2:-"No message provided"}
@@ -23,13 +17,13 @@ log() {
 
     case $level in
         INFO)
-            color=$GREEN
+            color="\033[32m"
             prefix="INFO" ;;
         WARN)
-            color=$YELLOW
+            color="\033[33m"
             prefix="WARNING" ;;
         ERROR)
-            color=$RED
+            color="\033[31m"
             prefix="ERROR" ;;
     esac
 
@@ -69,9 +63,9 @@ MAX_TIME=${MAX_EXEC_TIME:-1200}
 WAIT_TIME=${SLEEP_TIME:-10}
 
 # Trigger the repository_dispatch event
-log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
+log "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
 github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
-log INFO "Workflow dispatch event triggered successfully."
+log "Workflow dispatch event triggered successfully."
 
 # Initialize variables
 workflow=""
@@ -79,7 +73,7 @@ start_time=$(date +%s)
 elapsed_time=0
 
 # Poll for the workflow run associated with the dispatch event
-log INFO "Waiting for workflow to start..."
+log "Waiting for workflow to start..."
 while true; do
     sleep "$WAIT_TIME"
     elapsed_time=$(( $(date +%s) - start_time ))
@@ -98,15 +92,15 @@ while true; do
         workflow_name=$(echo "$workflow" | jq -r '.name')
         break
     else
-        log INFO "Workflow not started yet. Checking again in $WAIT_TIME seconds..."
+        log "Workflow not started yet. Checking again in $WAIT_TIME seconds..."
     fi
 done
 
-log INFO "Workflow '${workflow_name}' (ID: ${wfid}) started."
-log INFO "Track the progress at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
+log "Workflow '${workflow_name}' (ID: ${wfid}) started."
+log "Track the progress at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
 
 # Wait for the workflow to complete
-log INFO "Waiting for workflow '${workflow_name}' to complete..."
+log "Waiting for workflow '${workflow_name}' to complete..."
 while true; do
     sleep "$WAIT_TIME"
     elapsed_time=$(( $(date +%s) - start_time ))
@@ -124,14 +118,14 @@ while true; do
     if [ "$status" = "completed" ]; then
         break
     else
-        log INFO "Workflow '${workflow_name}' is still running. Status: $status. Elapsed time: ${elapsed_time}s."
+        log "Workflow '${workflow_name}' is still running. Status: $status. Elapsed time: ${elapsed_time}s."
     fi
 done
 
-log INFO "Workflow '${workflow_name}' concluded with status: $conclusion"
+log "Workflow '${workflow_name}' concluded with status: $conclusion"
 
 # Fetch and display job details
-log INFO "Fetching job details for workflow '${workflow_name}'..."
+log "Fetching job details for workflow '${workflow_name}'..."
 jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs")
 
 # Display job statuses
@@ -140,7 +134,7 @@ echo "$jobs" | jq -r '.jobs[] | "- \(.name): \(.status) (\(.conclusion)) \n  Log
 
 # Final status
 if [ "$conclusion" = "success" ]; then
-    log INFO "Workflow '${workflow_name}' completed successfully."
+    log "Workflow '${workflow_name}' completed successfully."
     exit 0
 else
     log ERROR "Workflow '${workflow_name}' failed. Check the logs at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
