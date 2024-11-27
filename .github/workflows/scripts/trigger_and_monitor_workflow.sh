@@ -4,9 +4,15 @@ set -e  # Exit immediately if a command exits with a non-zero status
 
 # Function for logging with levels, colors, and timestamps
 log() {
-    # Default log level
-    local level=${1:-INFO}
-    local message=${2:-"No message provided"}
+    # Extract arguments
+    local level="INFO"    # Default log level
+    local message="$1"    # Assume the first argument is the message
+
+    # If a second argument is provided, treat the first as the level
+    if [[ $# -eq 2 ]]; then
+        level="$1"
+        message="$2"
+    fi
 
     # Generate timestamp
     local timestamp=$(date +'%Y-%m-%d %H:%M:%S')
