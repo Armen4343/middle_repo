@@ -1,40 +1,23 @@
 #!/bin/bash
 
-set -e  # Exit immediately if a command exits with a non-zero status
+set -euo pipefail
 
 # Function for logging with levels, colors, and timestamps
 log() {
-    # Extract arguments
-    local level="INFO"    # Default log level
-    local message="$1"    # Assume the first argument is the message
-
-    # If a second argument is provided, treat the first as the level
-    if [[ $# -eq 2 ]]; then
-        level="$1"
-        message="$2"
-    fi
-
-    # Generate timestamp
-    local timestamp=$(date +'%Y-%m-%d %H:%M:%S')
-
-    # Determine color and prefix based on level
-    local color
-    local prefix
-
+    local level=${1:-INFO}
+    local message=$2
+    local timestamp
+    timestamp=$(date +'%Y-%m-%d %H:%M:%S')
     case $level in
         INFO)
-            color="\033[32m"
-            prefix="INFO" ;;
+            echo -e "\033[32m[$timestamp] [INFO]\033[0m $message" ;;    # Green
         WARN)
-            color="\033[33m"
-            prefix="WARNING" ;;
+            echo -e "\033[33m[$timestamp] [WARNING]\033[0m $message" ;;  # Yellow
         ERROR)
-            color="\033[31m"
-            prefix="ERROR" ;;
+            echo -e "\033[31m[$timestamp] [ERROR]\033[0m $message" ;;    # Red
+        *)
+            echo "[$timestamp] [UNKNOWN] $message" ;;
     esac
-
-    # Single echo command
-    echo -e "${color}[$timestamp] $prefix $message"
 }
 
 # Function for GitHub API calls with error handling
@@ -69,7 +52,7 @@ MAX_TIME=${MAX_EXEC_TIME:-1200}
 WAIT_TIME=${SLEEP_TIME:-10}
 
 # Trigger the repository_dispatch event
-log "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
+log "riggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
 github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
 log "Workflow dispatch event triggered successfully."
 
@@ -124,14 +107,14 @@ while true; do
     if [ "$status" = "completed" ]; then
         break
     else
-        log "Workflow '${workflow_name}' is still running. Status: $status. Elapsed time: ${elapsed_time}s."
+        log INFO "Workflow '${workflow_name}' is still running. Status: $status. Elapsed time: ${elapsed_time}s."
     fi
 done
 
-log "Workflow '${workflow_name}' concluded with status: $conclusion"
+log INFO "Workflow '${workflow_name}' concluded with status: $conclusion"
 
 # Fetch and display job details
-log "Fetching job details for workflow '${workflow_name}'..."
+log INFO "Fetching job details for workflow '${workflow_name}'..."
 jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs")
 
 # Display job statuses
@@ -140,7 +123,7 @@ echo "$jobs" | jq -r '.jobs[] | "- \(.name): \(.status) (\(.conclusion)) \n  Log
 
 # Final status
 if [ "$conclusion" = "success" ]; then
-    log "Workflow '${workflow_name}' completed successfully."
+    log INFO "Workflow '${workflow_name}' completed successfully."
     exit 0
 else
     log ERROR "Workflow '${workflow_name}' failed. Check the logs at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
