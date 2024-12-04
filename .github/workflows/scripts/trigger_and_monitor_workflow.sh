@@ -24,7 +24,7 @@ log() {
 github_api_call() {
     local method=$1
     local endpoint=$2
-    local data=$3
+    local data=${3:-}
     local response
     local http_status
 
@@ -46,6 +46,7 @@ github_api_call() {
 
     echo "$response_body"
 }
+
 
 UUID=$(date +%s)-$RANDOM
 
@@ -80,7 +81,7 @@ while true; do
     fi
 
     # Fetch latest workflow runs for `repository_dispatch`
-    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?event=repository_dispatch")
+    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?event=repository_dispatch&per_page=5")
 
     
     # Filter workflows by unique ID
