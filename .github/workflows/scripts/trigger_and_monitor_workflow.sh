@@ -59,7 +59,7 @@ WAIT_TIME=${SLEEP_TIME:-10}
 log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
 
 github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
-    "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CALLER_REPOSITORY}\", \"unique_id\": \"${UUID}\"}}"
+    "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"unique_id\": \"${UUID}\"}}"
 log INFO "Repository dispatch triggered with unique ID: ${UUID}"
 # log INFO "Workflow dispatch event triggered successfully."
 
