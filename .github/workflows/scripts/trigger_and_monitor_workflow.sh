@@ -84,7 +84,7 @@ while true; do
 
     # Fetch latest workflow runs for `repository_dispatch`
     workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?event=repository_dispatch&per_page=10")
-    
+    echo $workflows
     # Filter workflows by matching event and UUID in client payload
     workflow=$(echo "$workflows" | jq --arg uuid "$UUID" '
         .workflow_runs[] | select(.event == "repository_dispatch" and (.head_commit.message // "" | contains($uuid)))')
