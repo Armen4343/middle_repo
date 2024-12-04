@@ -90,7 +90,8 @@ while true; do
 
     if [ -n "$workflow" ] && [ "$workflow" != "null" ]; then
         wfid=$(echo "$workflow" | jq -r '.id')
-        log INFO "Found active workflow with UUID: ${UUID}"
+        workflow_name=$(echo "$workflow" | jq -r '.name')
+        log INFO "Found active workflow with name: ${UUID}"
         break
     else
         log INFO "No active workflow with the desired unique ID found. Checking again in $WAIT_TIME seconds..."
@@ -98,17 +99,17 @@ while true; do
 done
 
 
-log INFO "Workflow '${UUID}' (ID: ${wfid}) started."
+log INFO "Workflow '${workflow_name}' (ID: ${wfid}) started."
 log INFO "Track the progress at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
 
 # Wait for the workflow to complete
-log INFO "Waiting for workflow '${UUID}' to complete..."
+log INFO "Waiting for workflow '${workflow_name}' to complete..."
 while true; do
     sleep "$WAIT_TIME"
     elapsed_time=$(( $(date +%s) - start_time ))
 
     if [ "$elapsed_time" -ge "$MAX_TIME" ]; then
-        log ERROR "Workflow '${UUID}' did not complete within the allotted time of $MAX_TIME seconds."
+        log ERROR "Workflow '${workflow_name}' did not complete within the allotted time of $MAX_TIME seconds."
         exit 1
     fi
 
@@ -120,14 +121,14 @@ while true; do
     if [ "$status" = "completed" ]; then
         break
     else
-        log INFO "Workflow '${UUID}' is still running. Status: $status. Elapsed time: ${elapsed_time}s."
+        log INFO "Workflow '${workflow_name}' is still running. Status: $status. Elapsed time: ${elapsed_time}s."
     fi
 done
 
-log INFO "Workflow '${UUID}' concluded with status: $conclusion"
+log INFO "Workflow '${workflow_name}' concluded with status: $conclusion"
 
 # Fetch and display job details
-log INFO "Fetching job details for workflow '${UUID}'..."
+log INFO "Fetching job details for workflow '${workflow_name}'..."
 jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs")
 
 # Display job statuses
@@ -136,9 +137,9 @@ echo "$jobs" | jq -r '.jobs[] | "- \(.name): \(.status) (\(.conclusion)) \n  Log
 
 # Final status
 if [ "$conclusion" = "success" ]; then
-    log INFO "Workflow '${UUID}' completed successfully."
+    log INFO "Workflow '${workflow_name}' completed successfully."
     exit 0
 else
-    log ERROR "Workflow '${UUID}' failed. Check the logs at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
+    log ERROR "Workflow '${workflow_name}' failed. Check the logs at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
     exit 1
 fi
