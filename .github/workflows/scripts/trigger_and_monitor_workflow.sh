@@ -82,20 +82,21 @@ while true; do
         exit 1
     fi
 
-    # Fetch latest workflow runs for `repository_dispatch`
-    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?event=repository_dispatch&per_page=10")
+    # Fetch latest workflow runs for active workflows
+    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?status=in_progress&per_page=10")
     echo $workflows
-    # Filter workflows by matching event and UUID in client payload
-    workflow=$(echo "$workflows" | jq --arg uuid "$UUID" '
-        .workflow_runs[] | select(.event == "repository_dispatch" and (.head_commit.message // "" | contains($uuid)))')
 
+    # Filter workflows by name (replace 'desired_workflow_name' with your target name)
+    workflow=$(echo "$workflows" | jq --arg name "${UUID}-${EVENT_TYPE}" '
+        .workflow_runs[] | select(.name == $name)')
 
     if [ -n "$workflow" ] && [ "$workflow" != "null" ]; then
         wfid=$(echo "$workflow" | jq -r '.id')
         workflow_name=$(echo "$workflow" | jq -r '.name')
+        log INFO "Found active workflow with name: $workflow_name"
         break
     else
-        log INFO "Workflow not started yet. Checking again in $WAIT_TIME seconds..."
+        log INFO "No active workflow with the desired name found. Checking again in $WAIT_TIME seconds..."
     fi
 done
 
