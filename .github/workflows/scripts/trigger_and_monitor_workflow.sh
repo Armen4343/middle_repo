@@ -24,8 +24,8 @@ log() {
 github_api_call() {
     local method=$1
     local endpoint=$2
-    # local data=${3:-}
-    local data=$3
+    local data=${3:-}
+    # local data=$3
     local response
     local http_status
 
@@ -59,10 +59,10 @@ WAIT_TIME=${SLEEP_TIME:-10}
 
 # Trigger the repository_dispatch event
 log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
-github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
+# github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
 
-# github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
-#     "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"unique_id\": \"${UUID}\"}}"
+github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
+    "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"unique_id\": \"${UUID}\"}}"
 log INFO "Repository dispatch triggered with unique ID: ${UUID}"
 # log INFO "Workflow dispatch event triggered successfully."
 
@@ -83,11 +83,11 @@ while true; do
     fi
 
     # Fetch latest workflow runs for `repository_dispatch`
-    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?event=repository_dispatch&per_page=5")
-
+    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?event=repository_dispatch&per_page=10")
     
-    # Filter workflows by unique ID
-    workflow=$(echo "$workflows" | jq --arg uuid "$UUID" '.workflow_runs[] | select(.head_commit.message | contains($uuid))')
+    # Filter workflows by matching event and UUID in client payload
+    workflow=$(echo "$workflows" | jq --arg uuid "$UUID" '
+        .workflow_runs[] | select(.event == "repository_dispatch" and .head_commit.message | test($uuid))')
 
     if [ -n "$workflow" ] && [ "$workflow" != "null" ]; then
         wfid=$(echo "$workflow" | jq -r '.id')
