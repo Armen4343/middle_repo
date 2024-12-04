@@ -82,6 +82,7 @@ while true; do
 
     # Fetch latest workflow runs for active workflows
     workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?status=in_progress&per_page=10")
+    echo "workflows"
     echo $workflows
 
     # Filter workflows by display_title matching the unique ID in client payload
