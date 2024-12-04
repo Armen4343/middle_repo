@@ -87,7 +87,8 @@ while true; do
     
     # Filter workflows by matching event and UUID in client payload
     workflow=$(echo "$workflows" | jq --arg uuid "$UUID" '
-        .workflow_runs[] | select(.event == "repository_dispatch" and .head_commit.message | test($uuid))')
+        .workflow_runs[] | select(.event == "repository_dispatch" and (.head_commit.message // "" | contains($uuid)))')
+
 
     if [ -n "$workflow" ] && [ "$workflow" != "null" ]; then
         wfid=$(echo "$workflow" | jq -r '.id')
