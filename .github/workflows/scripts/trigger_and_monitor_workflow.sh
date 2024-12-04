@@ -62,7 +62,7 @@ log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REP
 # github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
 
 github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
-    "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"unique_id\": \"${UUID}\"}}"
+    "{\"event_type\": \"${UUID}-${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"unique_id\": \"${UUID}\"}}"
 log INFO "Repository dispatch triggered with unique ID: ${UUID}"
 # log INFO "Workflow dispatch event triggered successfully."
 
