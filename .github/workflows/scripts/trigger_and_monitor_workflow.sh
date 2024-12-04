@@ -59,7 +59,7 @@ WAIT_TIME=${SLEEP_TIME:-10}
 
 # Trigger the repository_dispatch event
 log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
-github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CALLER_REPOSITORY}\"}}"
+github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
 
 # github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
 #     "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"unique_id\": \"${UUID}\"}}"
