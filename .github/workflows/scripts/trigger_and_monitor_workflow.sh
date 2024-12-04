@@ -51,8 +51,6 @@ github_api_call() {
 
 UUID=$(date +%s)-$RANDOM
 
-echo "UUIDDddddddDdDdfsadfgljalkngfnaksdgkfvasdfv aksdfgvadfmgmUUID"
-echo $UUID
 # Set max pipeline execution time (in seconds) and wait time between checks
 MAX_TIME=${MAX_EXEC_TIME:-1200}
 WAIT_TIME=${SLEEP_TIME:-10}
@@ -62,9 +60,9 @@ log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REP
 # github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
 
 github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
-    "{\"event_type\": \"${UUID}-${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
+    "{\"event_type\": \"${UUID}-${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"env\": \"${EVENT_TYPE}\"}}"
+
 log INFO "Repository dispatch triggered with unique ID: ${UUID}"
-# log INFO "Workflow dispatch event triggered successfully."
 
 # Initialize variables
 workflow=""
