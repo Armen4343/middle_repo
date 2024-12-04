@@ -91,7 +91,7 @@ while true; do
     if [ -n "$workflow" ] && [ "$workflow" != "null" ]; then
         wfid=$(echo "$workflow" | jq -r '.id')
         workflow_name=$(echo "$workflow" | jq -r '.name')
-        log INFO "Found active workflow with name: $workflow_name"
+        log INFO "Found active workflow with name: ${UUID}"
         break
     else
         log INFO "No active workflow with the desired unique ID found. Checking again in $WAIT_TIME seconds..."
