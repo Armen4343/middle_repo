@@ -86,9 +86,9 @@ while true; do
     workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?status=in_progress&per_page=10")
     echo $workflows
 
-    # Filter workflows by name (replace 'desired_workflow_name' with your target name)
-    workflow=$(echo "$workflows" | jq --arg name "${UUID}-${EVENT_TYPE}" '
-        .workflow_runs[] | select(.name == $name)')
+    # Filter workflows by display_title matching the unique ID in client payload
+    workflow=$(echo "$workflows" | jq --arg unique_id "$UUID" '
+        .workflow_runs[] | select(.display_title | contains($unique_id))')
 
     if [ -n "$workflow" ] && [ "$workflow" != "null" ]; then
         wfid=$(echo "$workflow" | jq -r '.id')
@@ -96,9 +96,10 @@ while true; do
         log INFO "Found active workflow with name: $workflow_name"
         break
     else
-        log INFO "No active workflow with the desired name found. Checking again in $WAIT_TIME seconds..."
+        log INFO "No active workflow with the desired unique ID found. Checking again in $WAIT_TIME seconds..."
     fi
 done
+
 
 log INFO "Workflow '${workflow_name}' (ID: ${wfid}) started."
 log INFO "Track the progress at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
