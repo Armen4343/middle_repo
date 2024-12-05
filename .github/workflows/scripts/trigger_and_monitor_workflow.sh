@@ -81,7 +81,7 @@ while true; do
     fi
 
     # Fetch latest workflow runs for active workflows
-    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs?status=in_progress&per_page=10")
+    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs")
     echo "workflows"
     echo $workflows
 
