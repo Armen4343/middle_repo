@@ -2,6 +2,24 @@
 
 set -euo pipefail
 
+# Validate required environment variables
+required_vars=("TOKEN" "OWNER" "REPO" "EVENT_TYPE" "CURRENT_REPO")
+for var in "${required_vars[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "Error: Required environment variable $var is not set"
+        exit 1
+    fi
+done
+
+API_BASE_URL=${API_BASE_URL:-"https://api.github.com"}
+MAX_RETRIES=${MAX_RETRIES:-3}
+RETRY_DELAY=${RETRY_DELAY:-5}
+MAX_TIME=${MAX_EXEC_TIME:-1200} 
+WAIT_TIME=${SLEEP_TIME:-10}    
+COLOR_OUTPUT=${COLOR_OUTPUT:-true}
+PIPELINE_START_MAX_TIME=600
+UUID=$(date +%s)-$RANDOM
+
 # Function for logging with levels, colors, and timestamps
 log() {
     local level=${1:-INFO}
@@ -25,46 +43,57 @@ github_api_call() {
     local method=$1
     local endpoint=$2
     local data=${3:-}
-    # local data=$3
+    local retry_count=0
     local response
     local http_status
+    local response_body
 
-    response=$(curl -X "$method" -s -w "HTTPSTATUS:%{http_code}" "https://api.github.com$endpoint" \
-        -H "Accept: application/vnd.github.v3+json" \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer ${TOKEN}" \
-        ${data:+-d "$data"})
+    while [ $retry_count -lt $MAX_RETRIES ]; do
+        response=$(curl -X "$method" -s -w "HTTPSTATUS:%{http_code}" "${API_BASE_URL}${endpoint}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            ${data:+-d "$data"})
+        
+        http_status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+        response_body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
 
-    http_status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-    response_body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
+        if [ "$http_status" -lt 400 ]; then
+            echo "$response_body"
+            return 0
+        elif [ "$http_status" -eq 429 ]; then
+            log WARN "Rate limited. Retrying in $RETRY_DELAY seconds..."
+            sleep $RETRY_DELAY
+            retry_count=$((retry_count + 1))
+        else
+            local error_message
+            error_message=$(echo "$response_body" | jq -r '.message' || echo "Unable to parse error message")
+            log ERROR "GitHub API Error ($http_status): $error_message"
+            return 1
+        fi
+    done
 
-    if [ "$http_status" -ge 400 ]; then
-        local error_message
-        error_message=$(echo "$response_body" | jq -r '.message')
-        log ERROR "GitHub API Error ($http_status): $error_message"
-        exit 1
-    fi
-
-    echo "$response_body"
+    log ERROR "Max retries reached for API call to ${endpoint}"
+    return 1
 }
-
-
-UUID=$(date +%s)-$RANDOM
-
-# Set max pipeline execution time (in seconds) and wait time between checks
-MAX_TIME=${MAX_EXEC_TIME:-1200}
-WAIT_TIME=${SLEEP_TIME:-10}
-PIPELINE_START_MAX_TIME=600
 
 # Trigger the repository_dispatch event
 log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
-github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
-    "{\"event_type\": \"${UUID}-${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"env\": \"${EVENT_TYPE}\"}}"
-
+if ! github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${UUID}-${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"env\": \"${EVENT_TYPE}\"}}"; then
+    log ERROR "Failed to trigger repository dispatch event"
+    exit 1
+fi
 log INFO "Repository dispatch triggered with unique ID: ${UUID}"
 
-# Initialize variables
+# Initialize variables for workflow monitoring
+workflows=""
 workflow=""
+wfid=""
+workflow_name=""
+workflow_run=""
+conclusion=""
+status=""
+jobs=""
 start_time=$(date +%s)
 elapsed_time=0
 
@@ -80,11 +109,16 @@ while true; do
     fi
 
     # Fetch latest workflow runs for active workflows
-    workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs")
+    if ! workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs"); then
+        log ERROR "Failed to fetch workflow runs"
+        continue
+    fi
 
     # Filter workflows by display_title matching the unique ID in client payload
-    workflow=$(echo "$workflows" | jq --arg unique_id "$UUID" '
-        .workflow_runs[] | select(.display_title | contains($unique_id))')
+    if ! workflow=$(echo "$workflows" | jq --arg unique_id "$UUID" '.workflow_runs[] | select(.display_title | contains($unique_id))'); then
+        log ERROR "Failed to parse workflow runs"
+        continue
+    fi
 
     if [ -n "$workflow" ] && [ "$workflow" != "null" ]; then
         wfid=$(echo "$workflow" | jq -r '.id')
@@ -111,9 +145,20 @@ while true; do
     fi
 
     # Fetch the current status of the workflow run
-    workflow_run=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}")
-    conclusion=$(echo "$workflow_run" | jq -r '.conclusion')
-    status=$(echo "$workflow_run" | jq -r '.status')
+    if ! workflow_run=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}"); then
+        log ERROR "Failed to fetch workflow run status"
+        continue
+    fi
+
+    if ! conclusion=$(echo "$workflow_run" | jq -r '.conclusion'); then
+        log ERROR "Failed to parse workflow conclusion"
+        continue
+    fi
+
+    if ! status=$(echo "$workflow_run" | jq -r '.status'); then
+        log ERROR "Failed to parse workflow status"
+        continue
+    fi
 
     if [ "$status" = "completed" ]; then
         break
@@ -126,11 +171,14 @@ log INFO "Workflow '${workflow_name}' concluded with status: $conclusion"
 
 # Fetch and display job details
 log INFO "Fetching job details for workflow '${workflow_name}'..."
-jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs")
+if ! jobs=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs/${wfid}/jobs"); then
+    log ERROR "Failed to fetch job details"
+    exit 1
+fi
 
 # Display job statuses
 echo -e "\nJob Details:"
-echo "$jobs" | jq -r '.jobs[] | "- \(.name): \(.status) (\(.conclusion)) \n  Log: \(.html_url)"'
+echo "$jobs" | jq -r '.jobs[] | "- Job: \(.name)\n  Status: \(.status)\n  Conclusion: \(.conclusion)\n  Logs: \(.html_url)\n"'
 
 # Final status
 if [ "$conclusion" = "success" ]; then
