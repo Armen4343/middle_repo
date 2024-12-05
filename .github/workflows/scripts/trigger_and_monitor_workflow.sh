@@ -54,11 +54,10 @@ UUID=$(date +%s)-$RANDOM
 # Set max pipeline execution time (in seconds) and wait time between checks
 MAX_TIME=${MAX_EXEC_TIME:-1200}
 WAIT_TIME=${SLEEP_TIME:-10}
+PIPELINE_START_MAX_TIME=600
 
 # Trigger the repository_dispatch event
 log INFO "Triggering repository dispatch event '${EVENT_TYPE}' in ${OWNER}/${REPO}..."
-# github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" "{\"event_type\": \"${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\"}}"
-
 github_api_call "POST" "/repos/${OWNER}/${REPO}/dispatches" \
     "{\"event_type\": \"${UUID}-${EVENT_TYPE}\", \"client_payload\": {\"repository_name\": \"${CURRENT_REPO}\", \"env\": \"${EVENT_TYPE}\"}}"
 
@@ -75,15 +74,13 @@ while true; do
     sleep "$WAIT_TIME"
     elapsed_time=$(( $(date +%s) - start_time ))
 
-    if [ "$elapsed_time" -ge "$MAX_TIME" ]; then
-        log ERROR "Workflow did not start within the allotted time of $MAX_TIME seconds."
+    if [ "$elapsed_time" -ge "$PIPELINE_START_MAX_TIME" ]; then
+        log ERROR "Workflow did not start within the allotted time of $PIPELINE_START_MAX_TIME seconds."
         exit 1
     fi
 
     # Fetch latest workflow runs for active workflows
     workflows=$(github_api_call "GET" "/repos/${OWNER}/${REPO}/actions/runs")
-    echo "workflows"
-    echo $workflows
 
     # Filter workflows by display_title matching the unique ID in client payload
     workflow=$(echo "$workflows" | jq --arg unique_id "$UUID" '
@@ -98,7 +95,6 @@ while true; do
         log INFO "No active workflow with the desired unique ID found. Checking again in $WAIT_TIME seconds..."
     fi
 done
-
 
 log INFO "Workflow '${workflow_name}' (ID: ${wfid}) started."
 log INFO "Track the progress at: https://github.com/${OWNER}/${REPO}/actions/runs/${wfid}"
